@@ -171,6 +171,13 @@ Windows 下可直接运行：
 start.bat
 ```
 
+Linux / macOS 下可直接运行：
+
+```bash
+chmod +x start.sh
+./start.sh
+```
+
 ## 工作流程
 
 1. 客户端向 `/v1/messages` 发送 Anthropic 风格请求
@@ -180,6 +187,61 @@ start.bat
 5. 如果上游返回流式数据，代理重组成 Anthropic SSE 事件
 6. 如果上游只支持非流式，代理也可以回放成 Anthropic 风格流式响应
 7. 把最终结果返回给 Anthropic 风格客户端
+
+## 最小请求示例
+
+健康检查：
+
+```bash
+curl http://127.0.0.1:4000/health
+```
+
+最小消息请求：
+
+```bash
+curl -sS http://127.0.0.1:4000/v1/messages \
+  -H 'content-type: application/json' \
+  -d '{
+    "model": "claude-compatible",
+    "max_tokens": 256,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello in one sentence."
+      }
+    ]
+  }'
+```
+
+带工具定义的请求示例：
+
+```bash
+curl -sS http://127.0.0.1:4000/v1/messages \
+  -H 'content-type: application/json' \
+  -d '{
+    "model": "claude-compatible",
+    "max_tokens": 256,
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "Get current weather",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "city": { "type": "string" }
+          },
+          "required": ["city"]
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the weather in Taipei?"
+      }
+    ]
+  }'
+```
 
 ## 一个最小价值示例
 
@@ -202,9 +264,30 @@ start.bat
 
 - `openaitoclaude.py`：主程序，包含请求转换、响应转换、流式处理和错误映射
 - `start.bat`：Windows 循环拉起脚本
+- `start.sh`：Linux / macOS 循环拉起脚本
 - `requirements.txt`：运行依赖
+- `Dockerfile`：最小容器化部署文件
 - `.env.example`：环境变量样板
 - `.gitignore`：基础忽略规则
+
+## Docker 启动
+
+构建镜像：
+
+```bash
+docker build -t openai-api-to-claude .
+```
+
+运行容器：
+
+```bash
+docker run --rm -p 4000:4000 \
+  -e OPENAI_API=http://host.docker.internal:8000/v1/chat/completions \
+  -e UPSTREAM_MODEL=gemma \
+  openai-api-to-claude
+```
+
+如果宿主机不是 Docker Desktop 环境，需要把 `host.docker.internal` 换成你上游网关实际可达的地址。
 
 ## 当前边界
 
@@ -227,3 +310,7 @@ start.bat
 `openai_api_to_claude` 借助成熟 Python 组件承载服务，但它本身的核心价值是新方案：把原本不兼容的 Anthropic 客户端协议和 OpenAI 兼容后端协议接起来，并且尽量保持工具调用、流式输出和错误语义的一致性。
 
 这不是简单封装库，而是一个明确解决协议兼容问题的适配层实现。
+
+## License
+
+本仓库使用 `MIT` 许可证，详见 [LICENSE](LICENSE)。
