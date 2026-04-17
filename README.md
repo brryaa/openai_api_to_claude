@@ -289,6 +289,29 @@ docker run --rm -p 4000:4000 \
 
 如果宿主机不是 Docker Desktop 环境，需要把 `host.docker.internal` 换成你上游网关实际可达的地址。
 
+## Docker Compose 启动
+
+直接启动：
+
+```bash
+docker compose up --build -d
+```
+
+停止：
+
+```bash
+docker compose down
+```
+
+如果需要覆盖默认上游地址，可以先导出环境变量，或放到当前目录 `.env` 中，例如：
+
+```bash
+OPENAI_API=http://192.168.1.10:8000/v1/chat/completions
+UPSTREAM_MODEL=gemma
+```
+
+Compose 文件会读取这些变量并注入容器。
+
 ## 当前边界
 
 - 当前上游目标是 OpenAI `chat/completions` 兼容接口，不是 Responses API

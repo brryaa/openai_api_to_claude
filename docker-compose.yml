@@ -1,0 +1,17 @@
+services:
+  openai-api-to-claude:
+    build: .
+    container_name: openai-api-to-claude
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      OPENAI_API: ${OPENAI_API:-http://host.docker.internal:8000/v1/chat/completions}
+      UPSTREAM_MODEL: ${UPSTREAM_MODEL:-gemma}
+      TIMEOUT: ${TIMEOUT:-120}
+      MAX_CONCURRENT: ${MAX_CONCURRENT:-1}
+      DEFAULT_MAX_TOKENS: ${DEFAULT_MAX_TOKENS:-1024}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      UPSTREAM_API_KEY: ${UPSTREAM_API_KEY:-}
+      USE_UPSTREAM_STREAM: ${USE_UPSTREAM_STREAM:-1}
+      ENABLE_TOOL_SYSTEM_HINT: ${ENABLE_TOOL_SYSTEM_HINT:-1}
