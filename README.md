@@ -268,6 +268,8 @@ curl -sS http://127.0.0.1:4000/v1/messages \
 - `requirements.txt`：运行依赖
 - `Dockerfile`：最小容器化部署文件
 - `.env.example`：环境变量样板
+- `.env.docker.example`：给 Docker Compose 用的环境变量样板
+- `smoke-test.sh`：最小联通性测试脚本
 - `.gitignore`：基础忽略规则
 
 ## Docker 启动
@@ -311,6 +313,28 @@ UPSTREAM_MODEL=gemma
 ```
 
 Compose 文件会读取这些变量并注入容器。
+
+如果你更习惯用样板文件，可以直接：
+
+```bash
+cp .env.docker.example .env
+docker compose up --build -d
+```
+
+## 最小验活
+
+服务启动后可以直接运行：
+
+```bash
+chmod +x smoke-test.sh
+./smoke-test.sh
+```
+
+如果服务不在本机 `4000` 端口，也可以传入自定义地址：
+
+```bash
+./smoke-test.sh http://127.0.0.1:8080
+```
 
 ## 当前边界
 
